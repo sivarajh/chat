@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Group Chat</title>
+  <meta name="description" content="Create or join a group chat. No login needed — just pick a name and chat." />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Landing: create or join a group -->
+  <main id="landing" class="screen">
+    <div class="card">
+      <h1>💬 Group Chat</h1>
+      <p class="subtitle">No sign-up. Pick a name, create or join a group, and start chatting. Your history is saved.</p>
+
+      <label class="field">
+        <span>Your display name</span>
+        <input id="displayName" type="text" maxlength="40" placeholder="e.g. Alex" autocomplete="off" />
+      </label>
+
+      <div class="split">
+        <section class="pane">
+          <h2>Create a group</h2>
+          <label class="field">
+            <span>Group name</span>
+            <input id="newGroupName" type="text" maxlength="60" placeholder="e.g. Weekend Trip" autocomplete="off" />
+          </label>
+          <button id="createBtn" class="btn primary">Create &amp; open</button>
+        </section>
+
+        <div class="divider"><span>or</span></div>
+
+        <section class="pane">
+          <h2>Join a group</h2>
+          <label class="field">
+            <span>Group code or link</span>
+            <input id="joinCode" type="text" placeholder="e.g. k3p9zq" autocomplete="off" />
+          </label>
+          <button id="joinBtn" class="btn">Join</button>
+        </section>
+      </div>
+
+      <p id="landingError" class="error" role="alert"></p>
+    </div>
+  </main>
+
+  <!-- Chat room -->
+  <main id="room" class="screen hidden">
+    <header class="room-header">
+      <button id="leaveBtn" class="icon-btn" title="Leave group" aria-label="Leave group">←</button>
+      <div class="room-title">
+        <h1 id="roomName">Group</h1>
+        <button id="copyLink" class="link-chip" title="Copy invite link">
+          <span id="roomCode">code</span> · Copy link
+        </button>
+      </div>
+      <button id="membersToggle" class="icon-btn" title="Members" aria-label="Members">
+        👥 <span id="memberCount">0</span>
+      </button>
+    </header>
+
+    <div id="statusBar" class="status-bar hidden"></div>
+
+    <div class="room-body">
+      <ul id="messages" class="messages" aria-live="polite"></ul>
+      <aside id="memberPanel" class="member-panel hidden">
+        <h2>In this group</h2>
+        <ul id="memberList"></ul>
+        <button id="changeName" class="btn ghost small">Change my name</button>
+      </aside>
+    </div>
+
+    <form id="composer" class="composer">
+      <input id="messageInput" type="text" maxlength="4000" placeholder="Type a message…" autocomplete="off" />
+      <button type="submit" class="btn primary send">Send</button>
+    </form>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  // Cloudflare Workers config for the group chat app.
+  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "name": "groupchat",
+  "main": "src/index.js",
+  "compatibility_date": "2025-04-01",
+
+  // Serve the frontend (public/) as static assets. Requests that don't match a
+  // file fall through to the Worker in src/index.js (which handles /ws + /api).
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+
+  // Each chat group is one Durable Object instance, keyed by its group code.
+  "durable_objects": {
+    "bindings": [
+      { "name": "CHAT_ROOM", "class_name": "ChatRoom" }
+    ]
+  },
+
+  // SQLite-backed Durable Objects are required for the free plan and give each
+  // group its own persistent SQL database for full chat history.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["ChatRoom"] }
+  ],
+
+  "observability": { "enabled": true }
+}
