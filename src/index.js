@@ -92,10 +92,15 @@ export class ChatRoom {
       return json({
         name: this.getMeta("name") || "",
         exists: this.getMeta("name") !== null || this.messageCount() > 0,
+        hasPasscode: this.getMeta("pass") !== null,
         messageCount: this.messageCount(),
         memberCount: this.currentMembers().length,
       });
     }
+
+    // The group's code is the last path segment (/ws/<code>). Used as a salt so
+    // the same passcode hashes differently across groups.
+    const code = url.pathname.split("/").pop() || "";
 
     // Otherwise this is a WebSocket upgrade.
     if (request.headers.get("Upgrade") !== "websocket") {
@@ -104,11 +109,22 @@ export class ChatRoom {
 
     let name = sanitizeName(url.searchParams.get("name"));
     const groupName = sanitizeName(url.searchParams.get("groupName"), 60);
+    const passcode = String(url.searchParams.get("pass") || "");
 
-    // The first person to open a group can name it; the name sticks.
-    if (groupName && this.getMeta("name") === null) {
+    // The first person to open a group is its creator: they name it and, if
+    // they choose, set a passcode. Both stick for the life of the group.
+    const isCreating = groupName && this.getMeta("name") === null;
+    if (isCreating) {
       this.setMeta("name", groupName);
+      if (passcode) this.setMeta("pass", await hashPass(code, passcode));
     }
+
+    // Validate the passcode for everyone who isn't the creator that just set it.
+    const passHash = this.getMeta("pass");
+    const authOk =
+      isCreating ||
+      passHash === null ||
+      (passcode !== "" && (await hashPass(code, passcode)) === passHash);
 
     const pair = new WebSocketPair();
     const client = pair[0];
@@ -117,6 +133,16 @@ export class ChatRoom {
     // Hibernatable WebSocket: the DO can sleep between messages without
     // dropping the connection, which keeps it cheap on the free plan.
     this.ctx.acceptWebSocket(server);
+
+    // Reject a wrong/missing passcode: tell the client why, then close. The
+    // "rejected" flag keeps the close handler from announcing a phantom leave.
+    if (!authOk) {
+      server.serializeAttachment({ rejected: true });
+      server.send(JSON.stringify({ type: "error", reason: "bad-passcode" }));
+      server.close(4001, "Incorrect passcode");
+      return new Response(null, { status: 101, webSocket: client });
+    }
+
     server.serializeAttachment({ name });
 
     // Send this client its starting state: history + who's here + group name.
@@ -184,6 +210,7 @@ export class ChatRoom {
 
   handleDeparture(ws) {
     const attachment = ws.deserializeAttachment() || {};
+    if (attachment.rejected) return; // never joined; nothing to announce
     const name = attachment.name || "Someone";
     // Presence is derived from the live sockets; by the time this fires the
     // socket is already gone from getWebSockets(), so this reflects reality.
@@ -217,6 +244,7 @@ export class ChatRoom {
     const names = [];
     for (const ws of this.ctx.getWebSockets()) {
       const attachment = ws.deserializeAttachment() || {};
+      if (attachment.rejected) continue;
       names.push(attachment.name || "Anonymous");
     }
     return names;
@@ -250,4 +278,15 @@ export class ChatRoom {
 function sanitizeName(raw, max = MAX_NAME_LEN) {
   const name = String(raw || "").replace(/\s+/g, " ").trim().slice(0, max);
   return name || "Anonymous";
+}
+
+// Hash a passcode for storage/comparison. The group code is mixed in as a salt
+// so identical passcodes across groups don't share a hash. The passcode itself
+// is never stored or sent back to clients.
+async function hashPass(salt, passcode) {
+  const data = new TextEncoder().encode(`${salt}::${passcode}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }

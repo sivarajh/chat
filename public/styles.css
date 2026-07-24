@@ -63,6 +63,19 @@ body {
 
 .field { display: block; margin-bottom: 14px; }
 .field > span { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+.field .hint { font-style: normal; opacity: 0.75; }
+
+input[type="password"] {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  outline: none;
+}
+input[type="password"]:focus { border-color: var(--primary); }
 
 input[type="text"] {
   width: 100%;

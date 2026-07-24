@@ -9,20 +9,31 @@ const $ = (id) => document.getElementById(id);
 const state = {
   code: null,
   name: localStorage.getItem("displayName") || "",
+  passcode: "",       // passcode for the current room (kept in memory only)
+  groupNameToSet: "", // set when we're the creator of this room
   socket: null,
   intentionalClose: false,
   reconnectDelay: 1000,
 };
+
+// Creation details (group name + passcode) are stashed per-code in
+// sessionStorage rather than the URL, so the passcode never ends up in the
+// shareable link or browser history.
+function setPending(code, data) {
+  sessionStorage.setItem("gc_create_" + code, JSON.stringify(data));
+}
+function getPending(code) {
+  const raw = sessionStorage.getItem("gc_create_" + code);
+  return raw ? JSON.parse(raw) : null;
+}
 
 // ---------- routing ----------
 function currentCode() {
   return new URLSearchParams(location.search).get("g");
 }
 
-function goToRoom(code, groupName) {
-  const params = new URLSearchParams({ g: code });
-  if (groupName) params.set("new", groupName); // signals "I just created this"
-  history.pushState({}, "", "?" + params.toString());
+function goToRoom(code) {
+  history.pushState({}, "", "?g=" + encodeURIComponent(code));
   route();
 }
 
@@ -94,7 +105,10 @@ function initLanding() {
     err.textContent = "";
     if (!state.name) return fail("Enter a display name first.");
     const groupName = $("newGroupName").value.trim().slice(0, 60) || "Untitled group";
-    goToRoom(randomCode(), groupName);
+    const passcode = $("newPasscode").value; // may be empty (no passcode)
+    const code = randomCode();
+    setPending(code, { groupName, passcode });
+    goToRoom(code);
   });
 
   $("joinBtn").addEventListener("click", () => {
@@ -164,8 +178,8 @@ function renderMembers(members) {
 function connect() {
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const params = new URLSearchParams({ name: state.name });
-  const createdName = new URLSearchParams(location.search).get("new");
-  if (createdName) params.set("groupName", createdName);
+  if (state.groupNameToSet) params.set("groupName", state.groupNameToSet);
+  if (state.passcode) params.set("pass", state.passcode);
 
   const socket = new WebSocket(`${proto}://${location.host}/ws/${state.code}?${params}`);
   state.socket = socket;
@@ -193,15 +207,59 @@ function connect() {
       addSystem(data.text);
     } else if (data.type === "presence") {
       renderMembers(data.members || []);
+    } else if (data.type === "error" && data.reason === "bad-passcode") {
+      // Server rejected the passcode. Abandon this socket, stop auto-reconnect,
+      // and re-prompt rather than looping.
+      state.intentionalClose = true;
+      try { socket.close(); } catch {}
+      const entered = promptPasscode("Incorrect passcode. Try again:");
+      if (entered === null) { leaveRoom(); return; }
+      state.passcode = entered;
+      state.intentionalClose = false;
+      connect();
     }
   });
 
   socket.addEventListener("close", () => {
-    if (state.intentionalClose) return;
+    // Ignore the close of a socket we've already replaced (e.g. after a retry).
+    if (socket !== state.socket || state.intentionalClose) return;
     setStatus("Reconnecting…", true);
     setTimeout(connect, state.reconnectDelay);
     state.reconnectDelay = Math.min(state.reconnectDelay * 2, 15000);
   });
+}
+
+function promptPasscode(message) {
+  const entered = prompt(message || "This group requires a passcode:");
+  return entered === null ? null : entered;
+}
+
+// Decide how to connect to a room: creators connect straight through (setting
+// the name/passcode); joiners check whether a passcode is required first.
+async function enterRoom() {
+  const pending = getPending(state.code);
+  if (pending) {
+    state.groupNameToSet = pending.groupName || "";
+    state.passcode = pending.passcode || "";
+    setStatus("Connecting…");
+    connect();
+    return;
+  }
+
+  state.groupNameToSet = "";
+  setStatus("Connecting…");
+
+  let info = {};
+  try {
+    info = await (await fetch("/api/room/" + encodeURIComponent(state.code))).json();
+  } catch { /* offline; connect anyway and let the socket retry */ }
+
+  if (info.hasPasscode && !state.passcode) {
+    const entered = promptPasscode();
+    if (entered === null) { goHome(); return; }
+    state.passcode = entered;
+  }
+  connect();
 }
 
 function leaveRoom() {
@@ -268,14 +326,16 @@ function route() {
     return;
   }
 
-  state.code = normalizeCode(code);
+  const normalized = normalizeCode(code);
+  // Reset per-room state when switching to a different room.
+  if (normalized !== state.code) state.passcode = "";
+  state.code = normalized;
   ensureName();
   state.intentionalClose = false;
   showScreen("room");
   $("roomCode").textContent = state.code;
   $("memberPanel").classList.add("hidden");
-  setStatus("Connecting…");
-  connect();
+  enterRoom();
 }
 
 initLanding();

@@ -5,6 +5,7 @@ Cloudflare Workers.
 
 - **No sign-up / no login.** Pick a display name in the browser and start chatting.
 - **Create a group**, get a shareable link/code — anyone with it can join.
+- **Optional per-group passcode** — set one when creating a group and joiners must enter it.
 - **Live messages** over WebSockets (instant, no refresh).
 - **Full history is saved** per group and shown to anyone who joins later.
 - **Leave any time** — just hit back; rejoin later with the same link.
@@ -57,7 +58,10 @@ That's your app — share it.
 
 ## Notes & limits
 
-- No login means no identity: names aren't reserved and anyone with a group's
-  link can read and post. It's built for casual/shareable chats, not secrets.
+- No login means no identity: names aren't reserved. Without a passcode, anyone
+  with a group's link can read and post. Add a passcode for a basic gate — it's
+  validated server-side and stored only as a salted SHA-256 hash, never in
+  plaintext and never sent back to clients. It's still meant for casual privacy,
+  not high-stakes secrets.
 - Each joiner loads the most recent 500 messages; older history stays stored.
 - Messages are capped at 4000 characters; names at 40.
