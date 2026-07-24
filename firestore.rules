@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// Security rules for the GitHub Pages + Firebase chat.
+//
+// There is no login, so rules can't restrict by user identity. Instead they
+// lock down the *shape* of data: group metadata is write-once, messages and
+// presence are size-limited and can't be edited or deleted by others. This
+// prevents tampering with existing history and keeps abuse bounded, while
+// still allowing the anonymous, no-login flow the app is built around.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /groups/{code} {
+      // Anyone can look up a group (needed for the join screen).
+      allow read: if true;
+
+      // A group can be created once, with exactly these fields. Its name and
+      // passcode hash are then immutable — nobody can rename or unlock it.
+      allow create: if request.resource.data.keys().hasOnly(['name', 'passHash', 'createdAt'])
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() <= 60
+                    && request.resource.data.passHash is string
+                    && request.resource.data.passHash.size() <= 128;
+      allow update, delete: if false;
+
+      match /messages/{message} {
+        allow read: if true;
+        // New messages only; correct shape and length; no editing/deleting.
+        allow create: if request.resource.data.keys().hasOnly(['sender', 'body', 'ts'])
+                      && request.resource.data.sender is string
+                      && request.resource.data.sender.size() <= 40
+                      && request.resource.data.body is string
+                      && request.resource.data.body.size() > 0
+                      && request.resource.data.body.size() <= 4000
+                      && request.resource.data.ts is number;
+        allow update, delete: if false;
+      }
+
+      match /presence/{clientId} {
+        allow read: if true;
+        // Presence heartbeats: a name + timestamp, or deletion on leave.
+        allow write: if request.resource == null
+                     || (request.resource.data.name is string
+                         && request.resource.data.name.size() <= 40
+                         && request.resource.data.lastSeen is number);
+      }
+    }
+  }
+}

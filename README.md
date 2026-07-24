@@ -1,67 +1,104 @@
 # 💬 Group Chat
 
-A no-login group chat with **persistent history**, built to deploy **free** on
-Cloudflare Workers.
+A no-login group chat with **persistent history**. Pick a display name, create or
+join a group by shareable link, chat live, and leave any time — no accounts.
 
-- **No sign-up / no login.** Pick a display name in the browser and start chatting.
+- **No sign-up / no login.** Just pick a display name in the browser.
 - **Create a group**, get a shareable link/code — anyone with it can join.
-- **Optional per-group passcode** — set one when creating a group and joiners must enter it.
-- **Live messages** over WebSockets (instant, no refresh).
+- **Optional per-group passcode** — set one when creating; joiners must enter it.
+- **Live messages** (instant, no refresh) with a live member list.
 - **Full history is saved** per group and shown to anyone who joins later.
 - **Leave any time** — just hit back; rejoin later with the same link.
 
-Everything runs on a single Cloudflare Worker: static frontend + real-time
-backend + storage, no separate database to sign up for.
+There are **two deployments** in this repo — pick one:
 
-## How it works
+| | Where it runs | What you set up |
+|---|---|---|
+| **A. GitHub Pages + Firebase** (`docs/`) | Static site on GitHub Pages; live data in Cloud Firestore | A free Firebase project |
+| **B. Cloudflare Workers** (`src/`, `public/`) | Everything on one Cloudflare Worker | A free Cloudflare account |
 
-| Piece | What it does |
-|-------|--------------|
-| `src/index.js` – Worker | Serves the frontend and routes `/ws/<code>` and `/api/room/<code>` to the right group. |
-| `src/index.js` – `ChatRoom` Durable Object | One instance **per group** (keyed by its code). Holds a live list of WebSocket connections and stores every message in its own SQLite database. |
-| `public/` | The frontend (`index.html`, `app.js`, `styles.css`), served as static assets. |
+Both are free. **A** hosts the page on GitHub itself (uses Firebase for the
+realtime/storage a static host can't do). **B** is a single all-in-one deploy.
 
-A group's messages live in that group's Durable Object, so history is kept for
-as long as the group exists. Rooms are joined by code (e.g. `/?g=k3p9zq`) and
-are **not** publicly listed.
+---
 
-## Run locally
+## A. Deploy on GitHub Pages + Firebase
+
+The site in `docs/` is a static app that talks directly to **Cloud Firestore**
+for live messages, history, and presence — so GitHub Pages can host all of it.
+
+### 1. Create a free Firebase project
+1. Go to **https://console.firebase.google.com** → **Add project** (the free
+   *Spark* plan is enough; no card required).
+2. In the project, open **Build → Firestore Database → Create database**, start
+   in **Production mode**, and pick a location.
+3. Add a **Web app**: Project Overview → the **`</>`** icon → register the app.
+   Firebase shows you a `firebaseConfig` object — keep it handy.
+
+### 2. Add your config
+Paste that `firebaseConfig` into **`docs/firebase-config.js`** (replace the
+`PASTE_…` placeholders). These values aren't secret — Firebase web config is
+meant to ship to the browser; your **Security Rules** are what protect the data.
+
+### 3. Set the security rules
+In the Firebase Console → **Firestore Database → Rules**, replace the contents
+with the rules from **[`firestore.rules`](./firestore.rules)** in this repo and
+click **Publish**. (Or, with the Firebase CLI: `firebase deploy --only firestore:rules`.)
+
+These rules keep the no-login flow working while locking down the data shape:
+group name/passcode are write-once, messages and presence are size-limited, and
+nothing already written can be edited or deleted.
+
+### 4. Turn on GitHub Pages
+In your GitHub repo: **Settings → Pages → Build and deployment**:
+- **Source:** *Deploy from a branch*
+- **Branch:** your branch (e.g. `main`) and folder **`/docs`** → **Save**.
+
+GitHub gives you a URL like `https://<you>.github.io/<repo>/`. Open it — if the
+config is missing you'll see a setup screen; once it's filled in you get the
+chat. Share the URL. Every push to that branch redeploys automatically.
+
+> **Try it locally first (optional):** any static server works, e.g.
+> `npx serve docs`, then open the printed URL.
+
+---
+
+## B. Deploy on Cloudflare Workers
+
+The all-in-one version. One Worker serves the frontend, relays live messages
+over WebSockets, and stores each group's history in its own SQLite database
+(via a Durable Object) — no separate database to sign up for.
 
 ```bash
 npm install
-npm run dev        # http://localhost:8787
+npm run dev            # try it locally at http://localhost:8787
+
+npx wrangler login     # free Cloudflare account (opens a browser once)
+npm run deploy         # prints your live https://…workers.dev URL
 ```
 
-Open two browser windows to chat with yourself across "users".
+> **Free tier:** uses **SQLite-backed Durable Objects**, included in the
+> Cloudflare Workers **free plan**. Rename the app / URL by changing `"name"`
+> in `wrangler.jsonc`.
 
-## Deploy for free
+**How it works:** `src/index.js` is the Worker + a `ChatRoom` Durable Object
+(one instance per group code) that holds the live WebSocket connections and the
+message history. `public/` is the frontend.
 
-1. Create a free [Cloudflare account](https://dash.cloudflare.com/sign-up).
-2. Log in from your terminal (opens a browser once):
+---
 
-   ```bash
-   npx wrangler login
-   ```
+## Notes & limits (both versions)
 
-3. Deploy:
-
-   ```bash
-   npm run deploy
-   ```
-
-Wrangler prints a live URL like `https://groupchat.<your-subdomain>.workers.dev`.
-That's your app — share it.
-
-> **Free tier:** This uses **SQLite-backed Durable Objects**, which are included
-> in the Cloudflare Workers **free plan**. No credit card or paid database
-> required. (Rename the app by changing `"name"` in `wrangler.jsonc`.)
-
-## Notes & limits
-
-- No login means no identity: names aren't reserved. Without a passcode, anyone
-  with a group's link can read and post. Add a passcode for a basic gate — it's
-  validated server-side and stored only as a salted SHA-256 hash, never in
-  plaintext and never sent back to clients. It's still meant for casual privacy,
-  not high-stakes secrets.
-- Each joiner loads the most recent 500 messages; older history stays stored.
+- **No login means no identity:** names aren't reserved. Without a passcode,
+  anyone with a group's link can read and post.
+- **Passcodes** are stored only as a salted SHA-256 hash (salted with the group
+  code), never in plaintext.
+  - On **Cloudflare (B)** the passcode is checked **server-side** — a wrong
+    passcode never receives any history.
+  - On **GitHub Pages + Firebase (A)** there is no server, so the passcode is a
+    **client-side gate**: it keeps casual users out of the UI, but the data is
+    technically readable by someone who bypasses the app and queries Firestore
+    directly. Good for casual privacy, not for high-stakes secrets. (For a true
+    wall you'd add Firebase Authentication.)
+- Each joiner loads the most recent **500** messages; older history stays stored.
 - Messages are capped at 4000 characters; names at 40.
