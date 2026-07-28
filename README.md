@@ -39,6 +39,8 @@ for live messages, history, and presence — so GitHub Pages can host all of it.
 Paste that `firebaseConfig` into **`docs/firebase-config.js`** (replace the
 `PASTE_…` placeholders). These values aren't secret — Firebase web config is
 meant to ship to the browser; your **Security Rules** are what protect the data.
+(GitHub may flag the `apiKey` — see
+[About that "Google API Key" alert](#about-that-google-api-key-alert) below.)
 
 ### 3. Set the security rules
 In the Firebase Console → **Firestore Database → Rules**, replace the contents
@@ -49,7 +51,23 @@ These rules keep the no-login flow working while locking down the data shape:
 group name/passcode are write-once, messages and presence are size-limited, and
 nothing already written can be edited or deleted.
 
-### 4. Turn on GitHub Pages
+### 4. Restrict your API key (recommended)
+Because the key ships to browsers, lock it to your own site so it can't be
+reused elsewhere:
+
+1. Go to **https://console.cloud.google.com/apis/credentials** and pick your
+   Firebase project (top-left project selector).
+2. Under **API Keys**, click the one named **“Browser key (auto created by
+   Firebase)”**.
+3. **Application restrictions** → choose **Websites** → **Add** these referrers:
+   - `https://<your-github-username>.github.io/*`
+   - `http://localhost:*` *(only if you want to run it locally too)*
+4. **Save.** Changes can take a few minutes to take effect.
+
+This makes the key unusable from anyone else's site. Combined with the rules in
+step 3, that's the real security model for a static app.
+
+### 5. Turn on GitHub Pages
 In your GitHub repo: **Settings → Pages → Build and deployment**:
 - **Source:** *Deploy from a branch*
 - **Branch:** your branch (e.g. `main`) and folder **`/docs`** → **Save**.
@@ -60,6 +78,34 @@ chat. Share the URL. Every push to that branch redeploys automatically.
 
 > **Try it locally first (optional):** any static server works, e.g.
 > `npx serve docs`, then open the printed URL.
+
+### About that "Google API Key" alert
+
+After you commit your config, GitHub secret scanning will likely email you:
+*"Google API Key detected in docs/firebase-config.js."* **This is expected, and
+it is not a leaked credential.**
+
+- A Firebase **web** API key is a *project identifier*, not a password. It
+  grants **no** data access by itself — Google
+  [documents that it's safe to commit](https://firebase.google.com/docs/projects/api-keys).
+  GitHub flags it because Google uses the same key format for billable APIs
+  (Maps, Cloud), where a key *can* be abused.
+- **It cannot be made private.** Every visitor's browser must download this
+  config for the app to run. Removing it from the repo (e.g. injecting it at
+  build time) only silences the scanner — the key is still public in the
+  deployed page. There's no way around that for a static, serverless app.
+- **What actually protects you** is what you already set up: the **Security
+  Rules** (step 3) control all data access, and the **key restrictions**
+  (step 4) stop the key working from anyone else's domain.
+
+**What to do:** complete step 4 if you haven't, then dismiss the GitHub alert
+(**Security → Secret scanning → the alert → Dismiss →** *"Won't fix"* or
+*"False positive"*). Rotating the key isn't necessary — a new one would be just
+as public.
+
+> **Note:** none of this applies to a Firebase **service account** JSON or
+> private key. Those *are* real secrets — never commit one. This project doesn't
+> use or need them.
 
 ---
 
@@ -100,5 +146,8 @@ message history. `public/` is the frontend.
     technically readable by someone who bypasses the app and queries Firestore
     directly. Good for casual privacy, not for high-stakes secrets. (For a true
     wall you'd add Firebase Authentication.)
+- **The Firebase config in `docs/` is public by design** — see
+  [About that "Google API Key" alert](#about-that-google-api-key-alert). No real
+  secrets (service accounts, private keys) are used anywhere in this project.
 - Each joiner loads the most recent **500** messages; older history stays stored.
 - Messages are capped at 4000 characters; names at 40.
