@@ -10,10 +10,11 @@
 // ---------------------------------------------------------------------------
 
 export const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID",
+  apiKey: "AIzaSyCFd-5U9jIViCSIjBarapAyR68R_dTqqyM",
+  authDomain: "chat-b0eed.firebaseapp.com",
+  projectId: "chat-b0eed",
+  storageBucket: "chat-b0eed.firebasestorage.app",
+  messagingSenderId: "788992065727",
+  appId: "1:788992065727:web:86452595c804ab8cbe860a",
+  measurementId: "G-FE2KP9HGBM"
 };
