@@ -7,6 +7,8 @@ join a group by shareable link, chat live, and leave any time — no accounts.
 - **Create a group**, get a shareable link/code — anyone with it can join.
 - **Optional per-group passcode** — set one when creating; joiners must enter it.
 - **Live messages** (instant, no refresh) with a live member list.
+- **Rich text like Slack** — clickable links, `*bold*`, `_italic_`, `~strike~`,
+  `` `code` ``, code blocks and quotes. See [Message formatting](#message-formatting).
 - **Full history is saved** per group and shown to anyone who joins later.
 - **Leave any time** — just hit back; rejoin later with the same link.
 
@@ -132,6 +134,37 @@ npm run deploy         # prints your live https://…workers.dev URL
 message history. `public/` is the frontend.
 
 ---
+
+## Message formatting
+
+Messages support Slack-style rich text. Both deployments share the same
+formatter (`docs/format.js` and `public/format.js`, kept identical).
+
+| Type this | You get |
+|---|---|
+| `https://example.com` | a clickable link (auto-detected, opens in a new tab) |
+| `www.example.com` | a clickable link |
+| `bob@example.com` | a clickable email link |
+| `*bold*` | **bold** |
+| `_italic_` | *italic* |
+| `~struck~` | ~~struck~~ |
+| `` `code` `` | inline `code` |
+| ` ```…``` ` | a code block |
+| `> quoted` | a quoted line |
+
+A small set of inline HTML tags also renders: `<b> <strong> <i> <em> <u> <s>
+<del> <code> <br>`.
+
+**Why only those tags.** Message bodies are untrusted — anyone in a group can
+send one — so rendering arbitrary HTML would let a member run JavaScript in
+everyone else's browser (stealing their session or messages). Instead, every
+message is escaped first and only the whitelisted tags above are re-enabled,
+re-emitted by name with **all attributes discarded**. So `<script>`,
+`<iframe>`, `<img onerror=…>`, `style="…"` and `on*` handlers can't get
+through — they show up as plain text. URLs are only ever linked as `http`,
+`https`, or `mailto`, so `javascript:` links are impossible too.
+
+Formatting is display-only: the raw text you typed is what gets stored.
 
 ## Notes & limits (both versions)
 

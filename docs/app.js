@@ -17,6 +17,7 @@ import {
   onSnapshot, query, orderBy, limit, deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { formatMessage, escapeHtml } from "./format.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -114,11 +115,6 @@ function ensureName() {
   localStorage.setItem("displayName", name);
   return name;
 }
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => (
-    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
-  ));
-}
 function timeLabel(ts) {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
@@ -152,7 +148,7 @@ function addMessage({ sender, body, ts, mine }) {
   li.className = "msg " + (mine ? "me" : "them");
   li.innerHTML =
     `<div class="meta">${escapeHtml(mine ? "You" : sender)} · ${timeLabel(ts)}</div>` +
-    `<div class="bubble">${escapeHtml(body)}</div>`;
+    `<div class="bubble">${formatMessage(body)}</div>`;
   appendAndScroll(li);
 }
 function addSystem(text) {

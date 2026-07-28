@@ -209,3 +209,40 @@ input[type="text"]:focus { border-color: var(--primary); }
 }
 .composer input { flex: 1; }
 .btn.send { width: auto; padding: 12px 22px; }
+
+/* ---------- message content formatting ---------- */
+.bubble a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+.bubble a:hover { filter: brightness(1.15); }
+.msg.me .bubble a { color: #fff; }
+
+.bubble code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  background: rgba(127, 127, 127, 0.18);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+.bubble code.block {
+  display: block;
+  padding: 8px 10px;
+  margin: 4px 0;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.msg.me .bubble code { background: rgba(255, 255, 255, 0.2); }
+
+.bubble .quote {
+  display: block;
+  border-left: 3px solid var(--border);
+  padding-left: 9px;
+  margin: 2px 0;
+  opacity: 0.9;
+}
+.msg.me .bubble .quote { border-left-color: rgba(255, 255, 255, 0.55); }
+
+.bubble del { opacity: 0.75; }

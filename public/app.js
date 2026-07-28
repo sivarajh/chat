@@ -1,4 +1,5 @@
 // Frontend for the group chat. No framework — plain DOM + one WebSocket.
+import { formatMessage, escapeHtml } from "./format.js";
 //
 // Routing is done with a query param: /?g=<code> is a room, / is the landing
 // page. Using a query param (not a path) means the static asset server always
@@ -78,12 +79,6 @@ function ensureName() {
   return name;
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => (
-    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
-  ));
-}
-
 function timeLabel(ts) {
   const d = new Date(ts);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -146,7 +141,7 @@ function addMessage({ sender, body, ts, mine }) {
   li.className = "msg " + (mine ? "me" : "them");
   li.innerHTML =
     `<div class="meta">${escapeHtml(mine ? "You" : sender)} · ${timeLabel(ts)}</div>` +
-    `<div class="bubble">${escapeHtml(body)}</div>`;
+    `<div class="bubble">${formatMessage(body)}</div>`;
   appendAndScroll(li);
 }
 
