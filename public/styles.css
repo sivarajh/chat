@@ -240,3 +240,6 @@ input[type="text"]:focus { border-color: var(--primary); }
 .msg.me .bubble .quote { border-left-color: rgba(255, 255, 255, 0.55); }
 
 .bubble del { opacity: 0.75; }
+
+/* ---------- PWA install button ---------- */
+.install-btn { margin-top: 14px; }

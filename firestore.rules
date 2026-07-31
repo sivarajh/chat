@@ -10,9 +10,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // An admin is any signed-in user with a document in /admins keyed by their
+    // uid. exists() is evaluated server-side and ignores the /admins read rule
+    // below, so admin status can't be probed or forged from a browser.
+    function isAdmin() {
+      return request.auth != null
+             && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Admin roster. Managed only from the Firebase Console — never readable or
+    // writable from the app, so nobody can grant themselves access.
+    match /admins/{uid} {
+      allow read, write: if false;
+    }
+
     match /groups/{code} {
-      // Anyone can look up a group (needed for the join screen).
-      allow read: if true;
+      // Anyone who knows a group's code can look it up (the join screen needs
+      // this). Listing the collection is admin-only: without that split, any
+      // visitor could enumerate every group ever created and read all of them.
+      allow get: if true;
+      allow list: if isAdmin();
 
       // A group can be created once, with exactly these fields. Its name and
       // passcode hash are then immutable — nobody can rename or unlock it.

@@ -246,3 +246,57 @@ input[type="text"]:focus { border-color: var(--primary); }
 .msg.me .bubble .quote { border-left-color: rgba(255, 255, 255, 0.55); }
 
 .bubble del { opacity: 0.75; }
+
+/* ---------- PWA install button ---------- */
+.install-btn { margin-top: 14px; }
+
+/* ---------- Admin dashboard ---------- */
+.card.narrow { max-width: 420px; }
+.small-note { font-size: 0.8rem; margin: 16px 0 0; }
+
+.dash-meta { font-size: 0.78rem; color: var(--muted); }
+
+.admin-body { flex: 1; display: flex; min-height: 0; position: relative; }
+
+/* min-width:0 lets the table area actually shrink when the transcript panel is
+   open, so the last column scrolls instead of being clipped. */
+.table-wrap { flex: 1; min-width: 0; overflow: auto; padding: 12px 14px; }
+
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.admin-table th, .admin-table td {
+  text-align: left; padding: 9px 10px;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.admin-table th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface); color: var(--muted);
+  font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.admin-table td.num, .admin-table th.num { text-align: right; }
+.admin-table tbody tr:hover { background: var(--surface-2); }
+.admin-table code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--surface-2); border-radius: 5px; padding: 1px 6px;
+}
+.admin-table td.empty { text-align: center; color: var(--muted); padding: 28px; }
+.row-actions { display: flex; gap: 6px; }
+.row-actions .btn { text-decoration: none; display: inline-block; }
+
+.transcript {
+  width: 380px; border-left: 1px solid var(--border);
+  background: var(--surface); display: flex; flex-direction: column; min-height: 0;
+}
+.transcript-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--border);
+}
+.transcript-head h2 { margin: 0; font-size: 0.95rem; }
+.transcript .messages { padding: 12px; }
+.transcript .msg { max-width: 100%; }
+
+@media (max-width: 820px) {
+  .transcript {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 90%; max-width: 420px; box-shadow: var(--shadow); z-index: 10;
+  }
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Chat Admin</title>
+  <!-- Admin pages should never be indexed or previewed. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="./styles.css" />
+  <meta name="theme-color" content="#5b8cff" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%91%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Sign in -->
+  <main id="login" class="screen hidden">
+    <div class="card narrow">
+      <h1>🔑 Admin</h1>
+      <p class="subtitle">Sign in with an admin account to view all groups.</p>
+      <form id="loginForm">
+        <label class="field">
+          <span>Email</span>
+          <input id="email" type="email" autocomplete="username" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="password" type="password" autocomplete="current-password" required />
+        </label>
+        <button type="submit" class="btn primary">Sign in</button>
+      </form>
+      <p id="loginError" class="error" role="alert"></p>
+      <p class="subtitle small-note">
+        Signing in does not grant access on its own — your account must also be
+        listed in the <code>admins</code> collection.
+      </p>
+    </div>
+  </main>
+
+  <!-- Dashboard -->
+  <main id="dash" class="screen hidden">
+    <header class="room-header">
+      <div class="room-title">
+        <h1>🔑 All groups</h1>
+        <span id="dashMeta" class="dash-meta"></span>
+      </div>
+      <button id="refreshBtn" class="icon-btn" title="Refresh">↻</button>
+      <button id="signOutBtn" class="icon-btn" title="Sign out">Sign out</button>
+    </header>
+
+    <div id="dashStatus" class="status-bar hidden"></div>
+
+    <div class="admin-body">
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th>Code</th>
+              <th class="num">Messages</th>
+              <th>Created</th>
+              <th>Last activity</th>
+              <th>Passcode</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="groupRows"></tbody>
+        </table>
+      </div>
+
+      <section id="transcript" class="transcript hidden">
+        <div class="transcript-head">
+          <h2 id="transcriptTitle">Transcript</h2>
+          <button id="closeTranscript" class="icon-btn" title="Close">✕</button>
+        </div>
+        <ul id="transcriptBody" class="messages"></ul>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>

@@ -7,6 +7,13 @@
   <meta name="description" content="Create or join a group chat. No login needed — just pick a name and chat." />
   <!-- Relative paths so this works when served under a subpath like /chat/ on GitHub Pages. -->
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#5b8cff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Chat" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
@@ -63,6 +70,8 @@
       </div>
 
       <p id="landingError" class="error" role="alert"></p>
+
+      <button id="installBtn" class="btn ghost small install-btn hidden">⬇️ Install app</button>
     </div>
   </main>
 

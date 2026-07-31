@@ -18,6 +18,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 import { formatMessage, escapeHtml } from "./format.js";
+import { initPwa } from "./pwa.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -398,6 +399,7 @@ function route() {
   enterRoom();
 }
 
+initPwa();
 initLanding();
 initRoomControls();
 route();

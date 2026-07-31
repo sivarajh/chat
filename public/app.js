@@ -1,9 +1,11 @@
 // Frontend for the group chat. No framework — plain DOM + one WebSocket.
-import { formatMessage, escapeHtml } from "./format.js";
 //
 // Routing is done with a query param: /?g=<code> is a room, / is the landing
 // page. Using a query param (not a path) means the static asset server always
 // serves index.html and never has to know about rooms.
+
+import { formatMessage, escapeHtml } from "./format.js";
+import { initPwa } from "./pwa.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -333,6 +335,7 @@ function route() {
   enterRoom();
 }
 
+initPwa();
 initLanding();
 initRoomControls();
 route();
