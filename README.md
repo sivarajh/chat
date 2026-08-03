@@ -13,6 +13,9 @@ join a group by shareable link, chat live, and leave any time — no accounts.
 - **Leave any time** — just hit back; rejoin later with the same link.
 - **Installable (PWA)** — install to a phone home screen or desktop and it opens
   like a native app; the shell works offline. See [PWA](#pwa-installable-app).
+- **Apple-style design, with a light/dark switch** — an iOS-inspired look that
+  follows your system setting by default, or pin Light/Dark yourself with the
+  toggle. See [Theme](#theme-light--dark).
 - **Admin dashboard** — an authenticated view of every group and transcript.
   See [Admin dashboard](#admin-dashboard).
 
@@ -138,6 +141,23 @@ npm run deploy         # prints your live https://…workers.dev URL
 message history. `public/` is the frontend.
 
 ---
+
+## Theme (light & dark)
+
+The design follows an iOS/macOS look (SF fonts, iOS system colors, frosted
+translucent bars, iMessage-style bubbles) and comes in matching light and dark
+versions.
+
+By default it follows your **device/browser setting** automatically. To
+override that, tap the theme button (🌗/☀️/🌙 — top-right of the landing card,
+or in the room and admin headers) to cycle **Auto → Light → Dark → Auto**. Your
+choice is remembered in that browser and applies immediately, regardless of
+what your OS is set to.
+
+There's no flash of the wrong theme on load: a small inline script in each
+page's `<head>` applies a saved choice before the page paints. Implementation
+is `theme.js` (identical in both builds) plus the `[data-theme]` CSS overrides
+in `styles.css`.
 
 ## PWA (installable app)
 

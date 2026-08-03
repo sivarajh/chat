@@ -8,7 +8,7 @@
 //   * Other shell assets are stale-while-revalidate for instant loads.
 //
 // Bump CACHE when the shell changes so old caches are dropped.
-const CACHE = "groupchat-worker-v3";
+const CACHE = "groupchat-worker-v4";
 
 const SHELL = [
   "/",
@@ -16,6 +16,7 @@ const SHELL = [
   "/styles.css",
   "/app.js",
   "/format.js",
+  "/theme.js",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",

@@ -16,8 +16,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
 import { formatMessage, escapeHtml } from "./format.js";
+import { initThemeToggle } from "./theme.js";
 
 const $ = (id) => document.getElementById(id);
+
+initThemeToggle();
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);

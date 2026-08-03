@@ -6,6 +6,7 @@
 
 import { formatMessage, escapeHtml } from "./format.js";
 import { initPwa } from "./pwa.js";
+import { initThemeToggle } from "./theme.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -335,6 +336,7 @@ function route() {
   enterRoom();
 }
 
+initThemeToggle();
 initPwa();
 initLanding();
 initRoomControls();

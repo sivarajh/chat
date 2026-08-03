@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Group Chat</title>
   <meta name="description" content="Create or join a group chat. No login needed — just pick a name and chat." />
+  <!-- Applies any saved theme choice before first paint, so there's no flash of
+       the wrong theme. Kept as an inline, synchronous script (not a module)
+       for that reason; see theme.js for the toggle button logic. -->
+  <script>
+    try {
+      var t = localStorage.getItem("gc-theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  </script>
   <!-- Relative paths so this works when served under a subpath like /chat/ on GitHub Pages. -->
   <link rel="stylesheet" href="./styles.css" />
   <link rel="manifest" href="./manifest.webmanifest" />
@@ -35,6 +44,7 @@
   <!-- Landing: create or join a group -->
   <main id="landing" class="screen hidden">
     <div class="card">
+      <button data-theme-toggle class="btn ghost small theme-toggle-corner" title="Change theme"></button>
       <h1>💬 Group Chat</h1>
       <p class="subtitle">No sign-up. Pick a name, create or join a group, and start chatting. Your history is saved.</p>
 
@@ -85,6 +95,7 @@
           <span id="roomCode">code</span> · Copy link
         </button>
       </div>
+      <button data-theme-toggle class="icon-btn" title="Change theme"></button>
       <button id="membersToggle" class="icon-btn" title="Members" aria-label="Members">
         👥 <span id="memberCount">0</span>
       </button>

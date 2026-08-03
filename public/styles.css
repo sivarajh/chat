@@ -28,8 +28,13 @@
   --shadow-panel: 0 24px 60px rgba(0, 0, 0, 0.18);
 }
 
+/* Dark palette. Applied two ways so the app can either follow the OS or be
+   pinned explicitly (see theme.js):
+     - OS-driven: prefers-color-scheme fires unless the visitor pinned "light".
+     - Explicit: [data-theme="dark"] forces dark regardless of OS setting.
+   Kept as one shared selector list so the two stay in sync. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #000000;
     --surface: #1c1c1e;                        /* secondarySystemGroupedBackground */
     --surface-2: rgba(118, 118, 128, 0.24);
@@ -48,6 +53,25 @@
     --shadow: 0 8px 40px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
     --shadow-panel: 0 24px 60px rgba(0, 0, 0, 0.65);
   }
+}
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --surface-2: rgba(118, 118, 128, 0.24);
+  --surface-3: rgba(118, 118, 128, 0.18);
+  --glass: rgba(22, 22, 24, 0.78);
+  --border: rgba(84, 84, 88, 0.48);
+  --text: #f5f5f7;
+  --muted: rgba(235, 235, 245, 0.6);
+  --primary: #5e5ce6;
+  --primary-press: #6f6df0;
+  --bubble-me-a: #807ef2;
+  --bubble-me-b: #5e5ce6;
+  --bubble-them: #26262a;
+  --danger: #ff453a;
+  --green: #30d158;
+  --shadow: 0 8px 40px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-panel: 0 24px 60px rgba(0, 0, 0, 0.65);
 }
 
 * { box-sizing: border-box; }
@@ -381,6 +405,13 @@ input[type="email"]:focus {
 
 /* ---------- PWA install button ---------- */
 .install-btn { margin-top: 16px; }
+
+/* ---------- Theme toggle ---------- */
+.theme-toggle-corner {
+  position: absolute; top: 20px; right: 20px;
+  z-index: 2;
+}
+.card { position: relative; }
 
 /* ---------- Admin dashboard ---------- */
 .card.narrow { max-width: 420px; }
