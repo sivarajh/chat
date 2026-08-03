@@ -8,7 +8,7 @@
 //   * Other shell assets are stale-while-revalidate for instant loads.
 //
 // Bump CACHE when the shell changes so old caches are dropped.
-const CACHE = "groupchat-worker-v2";
+const CACHE = "groupchat-worker-v3";
 
 const SHELL = [
   "/",

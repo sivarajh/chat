@@ -91,8 +91,8 @@ function fillSdf(c, color, sdf) {
   }
 }
 
-const BLUE = [0x5b, 0x8c, 0xff];
-const DEEP = [0x2b, 0x52, 0xc9];
+const BLUE = [0x58, 0x56, 0xd6];
+const DEEP = [0x3e, 0x3c, 0xaf];
 const WHITE = [0xff, 0xff, 0xff];
 
 // A speech bubble: rounded body plus a tail on the lower left.
